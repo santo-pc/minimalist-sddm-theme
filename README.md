@@ -28,6 +28,12 @@ qt5-graphicaleffects qt5-quickcontrols2 qt5-svg sddm
     Current=sddm-astronaut-theme" | sudo tee /etc/sddm.conf
     ```
 
+### Test
+```sh
+sddm-greeter --test-mode --theme ./
+```
+
+
 ### Credits
 
 Based on the theme [`Sugar Dark for SDDM`](https://github.com/MarianArlt/sddm-sugar-dark) by **MarianArlt**.
