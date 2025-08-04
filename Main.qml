@@ -1,256 +1,316 @@
-// SDDM Sugar Candy is free software: you can redistribute it and/or modify it
-// under the terms of the GNU General Public License as published by the
-// Free Software Foundation, either version 3 of the License, or any later version.
-// Config created by https://github.com/MarianArlt
-// Config modified by keyitdev https://github.com/keyitdev
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
+import SddmComponents 2.0
 
-import QtQuick 2.11
-import QtQuick.Layouts 1.11
-import QtQuick.Controls 2.4
-import QtGraphicalEffects 1.0
-import "Components"
+Rectangle {
+    width: 600
+    height: 350
+    color: "#1a1a1a"
+    
+    property string username: ""
+    property string password: ""
+    property int sessionIndex: 0  // Start at 0 instead of sessionModel.lastIndex
+    
+    // Test data for when sessionModel is empty (test mode)
+    property var testSessions: ["GNOME", "KDE Plasma", "XFCE", "i3", "Sway"]
+    property bool isTestMode: sessionModel.rowCount() === 0
+    
+    // Initialize sessionIndex properly
+    Component.onCompleted: {
+        if (!isTestMode && sessionModel.lastIndex >= 0) {
+            sessionIndex = sessionModel.lastIndex
+        }
+    }
+    
+    // Load custom font
+    FontLoader {
+        id: customFont
+        source: "Fonts/YourFontName.ttf"  // Replace with your actual font file
+    }
 
-Pane {
-    id: root
+    ColumnLayout {
+        anchors.centerIn: parent
+        spacing: 16
+        width: 300
 
-    height: config.ScreenHeight || Screen.height
-    width: config.ScreenWidth || Screen.ScreenWidth
-
-    LayoutMirroring.enabled: config.ForceRightToLeft == "true" ? true : Qt.application.layoutDirection === Qt.RightToLeft
-    LayoutMirroring.childrenInherit: true
-
-    padding: config.ScreenPadding
-    palette.button: "transparent"
-    palette.highlight: config.AccentColor
-    palette.text: config.MainColor
-    palette.buttonText: config.MainColor
-    palette.window: config.BackgroundColor
-
-    font.family: config.Font
-    font.pointSize: config.FontSize !== "" ? config.FontSize : parseInt(height / 80)
-    focus: true
-
-    property bool leftleft: config.HaveFormBackground == "true" &&
-                            config.PartialBlur == "false" &&
-                            config.FormPosition == "left" &&
-                            config.BackgroundImageHAlignment == "left"
-
-    property bool leftcenter: config.HaveFormBackground == "true" &&
-                              config.PartialBlur == "false" &&
-                              config.FormPosition == "left" &&
-                              config.BackgroundImageHAlignment == "center"
-
-    property bool rightright: config.HaveFormBackground == "true" &&
-                              config.PartialBlur == "false" &&
-                              config.FormPosition == "right" &&
-                              config.BackgroundImageHAlignment == "right"
-
-    property bool rightcenter: config.HaveFormBackground == "true" &&
-                               config.PartialBlur == "false" &&
-                               config.FormPosition == "right" &&
-                               config.BackgroundImageHAlignment == "center"
-
-    Item {
-        id: sizeHelper
-
-        anchors.fill: parent
-        height: parent.height
-        width: parent.width
-
+        // Username input
         Rectangle {
-            id: tintLayer
-            anchors.fill: parent
-            width: parent.width
-            height: parent.height
-            color: "black"
-            opacity: config.DimBackgroundImage
-            z: 1
-        }
-
-        Rectangle {
-            id: formBackground
-            anchors.fill: form
-            anchors.centerIn: form
-            color: root.palette.window
-            visible: config.HaveFormBackground == "true" ? true : false
-            opacity: config.PartialBlur == "true" ? 0.3 : 1
-            z: 1
-        }
-
-        LoginForm {
-            id: form
-
-            height: virtualKeyboard.state == "visible" ? parent.height - virtualKeyboard.implicitHeight : parent.height
-            width: parent.width / 2.5
-            anchors.horizontalCenter: config.FormPosition == "center" ? parent.horizontalCenter : undefined
-            anchors.left: config.FormPosition == "left" ? parent.left : undefined
-            anchors.right: config.FormPosition == "right" ? parent.right : undefined
-            virtualKeyboardActive: virtualKeyboard.state == "visible" ? true : false
-            z: 1
-        }
-
-        Button {
-            id: vkb
-            onClicked: virtualKeyboard.switchState()
-            visible: virtualKeyboard.status == Loader.Ready && config.ForceHideVirtualKeyboardButton == "false"
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: implicitHeight
-            anchors.horizontalCenter: form.horizontalCenter
-            z: 1
-            contentItem: Text {
-                text: config.TranslateVirtualKeyboardButton || "Virtual Keyboard"
-                color: parent.visualFocus ? palette.highlight : palette.text
-                font.pointSize: root.font.pointSize * 0.8
-            }
-            background: Rectangle {
-                id: vkbbg
-                color: "transparent"
+            Layout.fillWidth: true
+            height: 40
+            color: "#2a2a2a"
+            border.color: usernameInput.activeFocus ? "#0078d4" : "#444444"
+            border.width: usernameInput.activeFocus ? 2 : 1
+            radius: 4
+            
+            TextInput {
+                id: usernameInput
+                anchors.fill: parent
+                anchors.margins: 8
+                text: username
+                onTextChanged: username = text
+                focus: true
+                color: "#ffffff"
+                font.family: customFont.name
+                font.pixelSize: 14
+                verticalAlignment: TextInput.AlignVCenter
+                
+                KeyNavigation.tab: passwordInput
+                
+                Text {
+                    anchors.fill: parent
+                    text: "Username"
+                    color: "#888888"
+                    font.family: customFont.name
+                    font.pixelSize: 14
+                    verticalAlignment: Text.AlignVCenter
+                    visible: parent.text.length === 0
+                }
             }
         }
 
-        Loader {
-            id: virtualKeyboard
-            source: "Components/VirtualKeyboard.qml"
-            state: "hidden"
-            property bool keyboardActive: item ? item.active : false
-            onKeyboardActiveChanged: keyboardActive ? state = "visible" : state = "hidden"
-            width: parent.width
-            z: 1
-            function switchState() { state = state == "hidden" ? "visible" : "hidden" }
-            states: [
-                State {
-                    name: "visible"
-                    PropertyChanges {
-                        target: form
-                        systemButtonVisibility: false
-                        clockVisibility: false
-                    }
-                    PropertyChanges {
-                        target: virtualKeyboard
-                        y: root.height - virtualKeyboard.height
-                        opacity: 1
-                    }
-                },
-                State {
-                    name: "hidden"
-                    PropertyChanges {
-                        target: virtualKeyboard
-                        y: root.height - root.height/4
-                        opacity: 0
-                    }
+        // Password input
+        Rectangle {
+            Layout.fillWidth: true
+            height: 40
+            color: "#2a2a2a"
+            border.color: passwordInput.activeFocus ? "#0078d4" : "#444444"
+            border.width: passwordInput.activeFocus ? 2 : 1
+            radius: 4
+            
+            TextInput {
+                id: passwordInput
+                anchors.fill: parent
+                anchors.margins: 8
+                text: password
+                onTextChanged: password = text
+                color: "#ffffff"
+                font.family: customFont.name
+                font.pixelSize: 14
+                verticalAlignment: TextInput.AlignVCenter
+                echoMode: TextInput.Password
+                
+                KeyNavigation.tab: sessionSelector
+                KeyNavigation.backtab: usernameInput
+                Keys.onReturnPressed: sddm.login(username, password, sessionIndex)
+                Keys.onEnterPressed: sddm.login(username, password, sessionIndex)
+                
+                Text {
+                    anchors.fill: parent
+                    text: "Password"
+                    color: "#888888"
+                    font.family: customFont.name
+                    font.pixelSize: 14
+                    verticalAlignment: Text.AlignVCenter
+                    visible: parent.text.length === 0
                 }
-            ]
-            transitions: [
-                Transition {
-                    from: "hidden"
-                    to: "visible"
-                    SequentialAnimation {
-                        ScriptAction {
-                            script: {
-                                virtualKeyboard.item.activated = true;
-                                Qt.inputMethod.show();
-                            }
-                        }
-                        ParallelAnimation {
-                            NumberAnimation {
-                                target: virtualKeyboard
-                                property: "y"
-                                duration: 100
-                                easing.type: Easing.OutQuad
-                            }
-                            OpacityAnimator {
-                                target: virtualKeyboard
-                                duration: 100
-                                easing.type: Easing.OutQuad
-                            }
-                        }
-                    }
-                },
-                Transition {
-                    from: "visible"
-                    to: "hidden"
-                    SequentialAnimation {
-                        ParallelAnimation {
-                            NumberAnimation {
-                                target: virtualKeyboard
-                                property: "y"
-                                duration: 100
-                                easing.type: Easing.InQuad
-                            }
-                            OpacityAnimator {
-                                target: virtualKeyboard
-                                duration: 100
-                                easing.type: Easing.InQuad
-                            }
-                        }
-                        ScriptAction {
-                            script: {
-                                Qt.inputMethod.hide();
-                            }
-                        }
-                    }
+            }
+        }
+
+        // Session selection
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 8
+
+            Text {
+                text: "Session:"
+                color: "#ffffff"
+                font.family: customFont.name
+                font.pixelSize: 14
+            }
+
+            Rectangle {
+                id: sessionSelector
+                Layout.fillWidth: true
+                height: 40
+                color: sessionMouseArea.activeFocus ? "#3a3a3a" : "#2a2a2a"
+                border.color: sessionMouseArea.activeFocus ? "#0078d4" : "#444444"
+                border.width: sessionMouseArea.activeFocus ? 2 : 1
+                radius: 4
+                
+                Text {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 8
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: isTestMode ? testSessions[sessionIndex % testSessions.length] : 
+                          (sessionModel.data(sessionModel.index(sessionIndex, 0), Qt.DisplayRole) || "Default")
+                    color: "#ffffff"
+                    font.family: customFont.name
+                    font.pixelSize: 14
                 }
-            ]
+                
+                Text {
+                    anchors.right: parent.right
+                    anchors.rightMargin: 8
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "▼"
+                    color: "#ffffff"
+                    font.family: customFont.name
+                    font.pixelSize: 12
+                }
+                
+                MouseArea {
+                    id: sessionMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    
+                    onClicked: {
+                        console.log("Session clicked! Current index:", sessionIndex, "Test mode:", isTestMode)
+                        focus = true
+                        if (isTestMode) {
+                            sessionIndex = (sessionIndex + 1) % testSessions.length
+                            console.log("New index:", sessionIndex, "Session:", testSessions[sessionIndex])
+                        } else {
+                            if (sessionModel.rowCount() > 0) {
+                                if (sessionIndex < sessionModel.rowCount() - 1) {
+                                    sessionIndex++
+                                } else {
+                                    sessionIndex = 0
+                                }
+                            }
+                        }
+                    }
+                    
+                    Keys.onSpacePressed: {
+                        console.log("Space pressed on session selector")
+                        if (isTestMode) {
+                            sessionIndex = (sessionIndex + 1) % testSessions.length
+                        } else {
+                            if (sessionModel.rowCount() > 0) {
+                                if (sessionIndex < sessionModel.rowCount() - 1) {
+                                    sessionIndex++
+                                } else {
+                                    sessionIndex = 0
+                                }
+                            }
+                        }
+                    }
+                    Keys.onReturnPressed: {
+                        if (isTestMode) {
+                            sessionIndex = (sessionIndex + 1) % testSessions.length
+                        } else {
+                            if (sessionModel.rowCount() > 0) {
+                                if (sessionIndex < sessionModel.rowCount() - 1) {
+                                    sessionIndex++
+                                } else {
+                                    sessionIndex = 0
+                                }
+                            }
+                        }
+                    }
+                    Keys.onEnterPressed: {
+                        if (isTestMode) {
+                            sessionIndex = (sessionIndex + 1) % testSessions.length
+                        } else {
+                            if (sessionModel.rowCount() > 0) {
+                                if (sessionIndex < sessionModel.rowCount() - 1) {
+                                    sessionIndex++
+                                } else {
+                                    sessionIndex = 0
+                                }
+                            }
+                        }
+                    }
+                    
+                    KeyNavigation.tab: loginButton
+                    KeyNavigation.backtab: passwordInput
+                }
+            }
         }
 
-        Image {
-            id: backgroundImage
+        // Login button
+        Rectangle {
+            id: loginButton
+            Layout.alignment: Qt.AlignHCenter
+            Layout.preferredWidth: 120
+            height: 40
+            color: loginMouseArea.pressed ? "#0d7377" : (loginMouseArea.containsMouse ? "#14a085" : (loginMouseArea.activeFocus ? "#2d8f6f" : "#40916c"))
+            border.color: loginMouseArea.activeFocus ? "#ffffff" : "transparent"
+            border.width: loginMouseArea.activeFocus ? 2 : 0
+            radius: 6
+            
+            Text {
+                anchors.centerIn: parent
+                text: "Login"
+                color: "#ffffff"
+                font.family: customFont.name
+                font.pixelSize: 14
+            }
+            
+            MouseArea {
+                id: loginMouseArea
+                anchors.fill: parent
+                hoverEnabled: true
+                onClicked: {
+                    focus = true
+                    sddm.login(username, password, sessionIndex)
+                }
+                
+                Keys.onReturnPressed: sddm.login(username, password, sessionIndex)
+                Keys.onEnterPressed: sddm.login(username, password, sessionIndex)
+                Keys.onSpacePressed: sddm.login(username, password, sessionIndex)
+                
+                KeyNavigation.tab: usernameInput
+                KeyNavigation.backtab: sessionSelector
+            }
+        }
+    }
 
-            height: parent.height
-            width: config.HaveFormBackground == "true" && config.FormPosition != "center" && config.PartialBlur != "true" ? parent.width - formBackground.width : parent.width
-            anchors.left: leftleft ||
-                          leftcenter ?
-                                formBackground.right : undefined
+    // Power options in bottom right
+    RowLayout {
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        anchors.margins: 20
+        spacing: 10
 
-            anchors.right: rightright ||
-                           rightcenter ?
-                                formBackground.left : undefined
-
-            horizontalAlignment: config.BackgroundImageHAlignment == "left" ?
-                                 Image.AlignLeft :
-                                 config.BackgroundImageHAlignment == "right" ?
-                                 Image.AlignRight : Image.AlignHCenter
-
-            verticalAlignment: config.BackgroundImageVAlignment == "top" ?
-                               Image.AlignTop :
-                               config.BackgroundImageVAlignment == "bottom" ?
-                               Image.AlignBottom : Image.AlignVCenter
-
-            source: config.background || config.Background
-            fillMode: config.ScaleImageCropped == "true" ? Image.PreserveAspectCrop : Image.PreserveAspectFit
-            asynchronous: true
-            cache: true
-            clip: true
-            mipmap: true
+        Rectangle {
+            width: 60
+            height: 30
+            color: rebootMouseArea.pressed ? "#444444" : (rebootMouseArea.containsMouse ? "#555555" : "transparent")
+            radius: 4
+            border.color: "#666666"
+            border.width: 1
+            visible: sddm.canReboot
+            
+            Text {
+                anchors.centerIn: parent
+                text: "Reboot"
+                font.family: customFont.name
+                font.pixelSize: 12
+                color: "#cccccc"
+            }
+            
+            MouseArea {
+                id: rebootMouseArea
+                anchors.fill: parent
+                hoverEnabled: true
+                onClicked: sddm.reboot()
+            }
         }
 
-        MouseArea {
-            anchors.fill: backgroundImage
-            onClicked: parent.forceActiveFocus()
-        }
-
-        ShaderEffectSource {
-            id: blurMask
-
-            sourceItem: backgroundImage
-            width: form.width
-            height: parent.height
-            anchors.centerIn: form
-            sourceRect: Qt.rect(x,y,width,height)
-            visible: config.FullBlur == "true" || config.PartialBlur == "true" ? true : false
-        }
-
-        GaussianBlur {
-            id: blur
-
-            height: parent.height
-            width: config.FullBlur == "true" ? parent.width : form.width
-            source: config.FullBlur == "true" ? backgroundImage : blurMask
-            radius: config.BlurRadius
-            samples: config.BlurRadius * 2 + 1
-            cached: true
-            anchors.centerIn: config.FullBlur == "true" ? parent : form
-            visible: config.FullBlur == "true" || config.PartialBlur == "true" ? true : false
+        Rectangle {
+            width: 70
+            height: 30
+            color: shutdownMouseArea.pressed ? "#444444" : (shutdownMouseArea.containsMouse ? "#555555" : "transparent")
+            radius: 4
+            border.color: "#666666"
+            border.width: 1
+            visible: sddm.canPowerOff
+            
+            Text {
+                anchors.centerIn: parent
+                text: "Shutdown"
+                font.family: customFont.name
+                font.pixelSize: 12
+                color: "#cccccc"
+            }
+            
+            MouseArea {
+                id: shutdownMouseArea
+                anchors.fill: parent
+                hoverEnabled: true
+                onClicked: sddm.powerOff()
+            }
         }
     }
 }
