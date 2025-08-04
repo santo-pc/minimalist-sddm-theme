@@ -26,7 +26,7 @@ Rectangle {
     // Load custom font
     FontLoader {
         id: customFont
-        source: "Fonts/YourFontName.ttf"  // Replace with your actual font file
+        source: "Fonts/RobotoMono-Regula.ttf"  // Replace with your actual font file
     }
 
     ColumnLayout {
