@@ -2,6 +2,8 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import SddmComponents 2.0
+import SddmComponents 2.0
+import "Components"
 
 Rectangle {
     width: 600
@@ -13,7 +15,7 @@ Rectangle {
     property int sessionIndex: 0  // Start at 0 instead of sessionModel.lastIndex
     
     // Test data for when sessionModel is empty (test mode)
-    property var testSessions: ["GNOME", "KDE Plasma", "XFCE", "i3", "Sway"]
+    property var testSessions: ["Wayland", "GNOME", "KDE Plasma", "XFCE", "i3", "Sway"]
     property bool isTestMode: sessionModel.rowCount() === 0
     
     // Initialize sessionIndex properly
@@ -106,152 +108,52 @@ Rectangle {
                 }
             }
         }
-
-        // Session selection
+        
+        
         RowLayout {
-            Layout.fillWidth: true
-            spacing: 8
-
-            Text {
-                text: "Session:"
-                color: "#ffffff"
-                font.family: customFont.name
-                font.pixelSize: 14
+            SessionButton {
+                id: sessionSelect
+                textConstantSession: textConstants.session
+                // loginButtonWidth: loginButton.background.width
             }
-
+            // Login button
             Rectangle {
-                id: sessionSelector
-                Layout.fillWidth: true
+                id: loginButton
+                Layout.alignment: Qt.AlignHCenter
+                Layout.preferredWidth: 120
                 height: 40
-                color: sessionMouseArea.activeFocus ? "#3a3a3a" : "#2a2a2a"
-                border.color: sessionMouseArea.activeFocus ? "#0078d4" : "#444444"
-                border.width: sessionMouseArea.activeFocus ? 2 : 1
-                radius: 4
-                
+                color: loginMouseArea.pressed ? "#0d7377" : 
+                (loginMouseArea.containsMouse ? "#14a085" : 
+                (loginMouseArea.activeFocus ? "#2d8f6f" : "#40916c"))
+                border.color: loginMouseArea.activeFocus ? "#ffffff" : "transparent"
+                border.width: loginMouseArea.activeFocus ? 2 : 0
+                radius: 6
+
                 Text {
-                    anchors.left: parent.left
-                    anchors.leftMargin: 8
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: isTestMode ? testSessions[sessionIndex % testSessions.length] : 
-                          (sessionModel.data(sessionModel.index(sessionIndex, 0), Qt.DisplayRole) || "Default")
+                    anchors.centerIn: parent
+                    text: "Login"
                     color: "#ffffff"
                     font.family: customFont.name
                     font.pixelSize: 14
                 }
-                
-                Text {
-                    anchors.right: parent.right
-                    anchors.rightMargin: 8
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "▼"
-                    color: "#ffffff"
-                    font.family: customFont.name
-                    font.pixelSize: 12
-                }
-                
+
                 MouseArea {
-                    id: sessionMouseArea
+                    id: loginMouseArea
                     anchors.fill: parent
                     hoverEnabled: true
-                    
-                    onClicked: {
-                        console.log("Session clicked! Current index:", sessionIndex, "Test mode:", isTestMode)
-                        focus = true
-                        if (isTestMode) {
-                            sessionIndex = (sessionIndex + 1) % testSessions.length
-                            console.log("New index:", sessionIndex, "Session:", testSessions[sessionIndex])
-                        } else {
-                            if (sessionModel.rowCount() > 0) {
-                                if (sessionIndex < sessionModel.rowCount() - 1) {
-                                    sessionIndex++
-                                } else {
-                                    sessionIndex = 0
-                                }
-                            }
-                        }
-                    }
-                    
-                    Keys.onSpacePressed: {
-                        console.log("Space pressed on session selector")
-                        if (isTestMode) {
-                            sessionIndex = (sessionIndex + 1) % testSessions.length
-                        } else {
-                            if (sessionModel.rowCount() > 0) {
-                                if (sessionIndex < sessionModel.rowCount() - 1) {
-                                    sessionIndex++
-                                } else {
-                                    sessionIndex = 0
-                                }
-                            }
-                        }
-                    }
-                    Keys.onReturnPressed: {
-                        if (isTestMode) {
-                            sessionIndex = (sessionIndex + 1) % testSessions.length
-                        } else {
-                            if (sessionModel.rowCount() > 0) {
-                                if (sessionIndex < sessionModel.rowCount() - 1) {
-                                    sessionIndex++
-                                } else {
-                                    sessionIndex = 0
-                                }
-                            }
-                        }
-                    }
-                    Keys.onEnterPressed: {
-                        if (isTestMode) {
-                            sessionIndex = (sessionIndex + 1) % testSessions.length
-                        } else {
-                            if (sessionModel.rowCount() > 0) {
-                                if (sessionIndex < sessionModel.rowCount() - 1) {
-                                    sessionIndex++
-                                } else {
-                                    sessionIndex = 0
-                                }
-                            }
-                        }
-                    }
-                    
-                    KeyNavigation.tab: loginButton
-                    KeyNavigation.backtab: passwordInput
-                }
-            }
-        }
 
-        // Login button
-        Rectangle {
-            id: loginButton
-            Layout.alignment: Qt.AlignHCenter
-            Layout.preferredWidth: 120
-            height: 40
-            color: loginMouseArea.pressed ? "#0d7377" : (loginMouseArea.containsMouse ? "#14a085" : (loginMouseArea.activeFocus ? "#2d8f6f" : "#40916c"))
-            border.color: loginMouseArea.activeFocus ? "#ffffff" : "transparent"
-            border.width: loginMouseArea.activeFocus ? 2 : 0
-            radius: 6
-            
-            Text {
-                anchors.centerIn: parent
-                text: "Login"
-                color: "#ffffff"
-                font.family: customFont.name
-                font.pixelSize: 14
-            }
-            
-            MouseArea {
-                id: loginMouseArea
-                anchors.fill: parent
-                hoverEnabled: true
-                onClicked: {
-                    focus = true
-                    sddm.login(username, password, sessionIndex)
+                    onClicked: {
+                        focus = true
+                        sddm.login(username, password, sessionIndex)
+                    }
+
+                    Keys.onReturnPressed: sddm.login(username, password, sessionIndex)
+                    Keys.onEnterPressed: sddm.login(username, password, sessionIndex)
+                    Keys.onSpacePressed: sddm.login(username, password, sessionIndex)
+
+                    KeyNavigation.tab: usernameInput
+                    KeyNavigation.backtab: sessionSelector
                 }
-                
-                Keys.onReturnPressed: sddm.login(username, password, sessionIndex)
-                Keys.onEnterPressed: sddm.login(username, password, sessionIndex)
-                Keys.onSpacePressed: sddm.login(username, password, sessionIndex)
-                
-                KeyNavigation.tab: usernameInput
-                KeyNavigation.backtab: sessionSelector
             }
         }
     }
@@ -266,7 +168,8 @@ Rectangle {
         Rectangle {
             width: 60
             height: 30
-            color: rebootMouseArea.pressed ? "#444444" : (rebootMouseArea.containsMouse ? "#555555" : "transparent")
+            color: rebootMouseArea.pressed ? "#444444" : 
+                   (rebootMouseArea.containsMouse ? "#555555" : "transparent")
             radius: 4
             border.color: "#666666"
             border.width: 1
@@ -291,7 +194,8 @@ Rectangle {
         Rectangle {
             width: 70
             height: 30
-            color: shutdownMouseArea.pressed ? "#444444" : (shutdownMouseArea.containsMouse ? "#555555" : "transparent")
+            color: shutdownMouseArea.pressed ? "#444444" : 
+                   (shutdownMouseArea.containsMouse ? "#555555" : "transparent")
             radius: 4
             border.color: "#666666"
             border.width: 1
