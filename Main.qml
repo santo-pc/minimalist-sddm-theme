@@ -2,12 +2,11 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import SddmComponents 2.0
-import SddmComponents 2.0
 import "Components"
 
 Rectangle {
-    width: 600
-    height: 350
+    width: 900
+    height: 550
     color: "#1a1a1a"
     
     property string username: ""
@@ -15,7 +14,7 @@ Rectangle {
     property int sessionIndex: 0  // Start at 0 instead of sessionModel.lastIndex
     
     // Test data for when sessionModel is empty (test mode)
-    property var testSessions: ["Wayland", "GNOME", "KDE Plasma", "XFCE", "i3", "Sway"]
+    property var testSessions: ["GNOME", "KDE Plasma", "XFCE", "i3", "Sway"]
     property bool isTestMode: sessionModel.rowCount() === 0
     
     // Initialize sessionIndex properly
@@ -34,13 +33,13 @@ Rectangle {
     ColumnLayout {
         anchors.centerIn: parent
         spacing: 16
-        width: 300
+        width: 500
 
         // Username input
         Rectangle {
             Layout.fillWidth: true
             height: 40
-            color: "#2a2a2a"
+            color: "#1a1a1a"
             border.color: usernameInput.activeFocus ? "#0078d4" : "#444444"
             border.width: usernameInput.activeFocus ? 2 : 1
             radius: 4
@@ -75,7 +74,7 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             height: 40
-            color: "#2a2a2a"
+            color: "#1a1a1a"
             border.color: passwordInput.activeFocus ? "#0078d4" : "#444444"
             border.width: passwordInput.activeFocus ? 2 : 1
             radius: 4
@@ -92,7 +91,7 @@ Rectangle {
                 verticalAlignment: TextInput.AlignVCenter
                 echoMode: TextInput.Password
                 
-                KeyNavigation.tab: sessionSelector
+                KeyNavigation.tab: sessionSelect
                 KeyNavigation.backtab: usernameInput
                 Keys.onReturnPressed: sddm.login(username, password, sessionIndex)
                 Keys.onEnterPressed: sddm.login(username, password, sessionIndex)
@@ -108,27 +107,32 @@ Rectangle {
                 }
             }
         }
-        
-        
+
+        // Session selector and Login button in horizontal layout
         RowLayout {
+            Layout.fillWidth: true
+            spacing: 10
+
+            // Session selector takes up remaining space
             SessionButton {
                 id: sessionSelect
-                textConstantSession: textConstants.session
-                // loginButtonWidth: loginButton.background.width
+                Layout.fillWidth: true
+                textConstantSession: "Session"
+                KeyNavigation.tab: loginButton
             }
-            // Login button
+
+            // Login button with fixed width
             Rectangle {
                 id: loginButton
-                Layout.alignment: Qt.AlignHCenter
                 Layout.preferredWidth: 120
                 height: 40
                 color: loginMouseArea.pressed ? "#0d7377" : 
-                (loginMouseArea.containsMouse ? "#14a085" : 
-                (loginMouseArea.activeFocus ? "#2d8f6f" : "#40916c"))
+                       (loginMouseArea.containsMouse ? "#14a085" : 
+                       (loginMouseArea.activeFocus ? "#2d8f6f" : "#40916c"))
                 border.color: loginMouseArea.activeFocus ? "#ffffff" : "transparent"
                 border.width: loginMouseArea.activeFocus ? 2 : 0
                 radius: 6
-
+                
                 Text {
                     anchors.centerIn: parent
                     text: "Login"
@@ -136,23 +140,23 @@ Rectangle {
                     font.family: customFont.name
                     font.pixelSize: 14
                 }
-
+                
                 MouseArea {
                     id: loginMouseArea
                     anchors.fill: parent
                     hoverEnabled: true
-
+                    
                     onClicked: {
                         focus = true
                         sddm.login(username, password, sessionIndex)
                     }
-
+                    
                     Keys.onReturnPressed: sddm.login(username, password, sessionIndex)
                     Keys.onEnterPressed: sddm.login(username, password, sessionIndex)
                     Keys.onSpacePressed: sddm.login(username, password, sessionIndex)
-
+                    
                     KeyNavigation.tab: usernameInput
-                    KeyNavigation.backtab: sessionSelector
+                    KeyNavigation.backtab: sessionSelect
                 }
             }
         }

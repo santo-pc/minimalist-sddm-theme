@@ -1,119 +1,121 @@
-// SDDM Sugar Candy is free software: you can redistribute it and/or modify it
-// under the terms of the GNU General Public License as published by the
-// Free Software Foundation, either version 3 of the License, or any later version.
-// Config created by https://github.com/MarianArlt
-// Config modified by keyitdev https://github.com/keyitdev
-
 import QtQuick 2.11
 import QtQuick.Controls 2.4
-// import QtGraphicalEffects 1.0
 
 Item {
+
     id: sessionButton
-    height: root.font.pointSize
-    width: 200 // parent.width
-    // anchors.horizontalCenter: parent.horizontalCenter
-    anchors.left: parent.left
+    height: 40  
+    width: parent.width
 
     property var selectedSession: selectSession.currentIndex
-    property string textConstantSession
-    property int loginButtonWidth
+    property string textConstantSession: "Session"
+    property int loginButtonWidth: 120
     property Control exposeSession: selectSession
 
     ComboBox {
         id: selectSession
-
+        anchors.fill: parent
         hoverEnabled: true
-        anchors.left: parent.left
+        
         Keys.onPressed: {
-            if (event.key == Qt.Key_Up && loginButton.state != "enabled" && !popup.opened)
-                revealSecret.focus = true,
-                revealSecret.state = "focused",
-                currentIndex = currentIndex + 1;
-            if (event.key == Qt.Key_Up && loginButton.state == "enabled" && !popup.opened)
-                loginButton.focus = true,
-                loginButton.state = "focused",
-                currentIndex = currentIndex + 1;
-            if (event.key == Qt.Key_Down && !popup.opened)
-                systemButtons.children[0].focus = true,
-                systemButtons.children[0].state = "focused",
-                currentIndex = currentIndex - 1;
-            if ((event.key == Qt.Key_Left || event.key == Qt.Key_Right) && !popup.opened)
-                popup.open();
+            if (event.key == Qt.Key_Up && !popup.opened) {
+                event.accepted = true
+            }
+            if (event.key == Qt.Key_Down && !popup.opened) {
+                event.accepted = true
+            }
+            if ((event.key == Qt.Key_Left || event.key == Qt.Key_Right) && !popup.opened) {
+                popup.open()
+            }
         }
 
         model: sessionModel
-        currentIndex: model.lastIndex
+        currentIndex: sessionModel.lastIndex >= 0 ? sessionModel.lastIndex : 0
         textRole: "name"
 
         delegate: ItemDelegate {
-            width: parent.width
-            anchors.horizontalCenter: parent.horizontalCenter
+            width: selectSession.width
+            height: 35
+            
             contentItem: Text {
                 text: model.name
-                font.pointSize: root.font.pointSize * 0.8
-                font.family: root.font.family
-                color: selectSession.highlightedIndex === "white"
+                font.pixelSize: 14
+                color: "#e6e6e6"
                 verticalAlignment: Text.AlignVCenter
                 horizontalAlignment: Text.AlignHCenter
             }
-            highlighted: parent.highlightedIndex === index
+            
+            highlighted: selectSession.highlightedIndex === index
+            
             background: Rectangle {
-                color: selectSession.highlightedIndex === index ? root.palette.highlight : "green"
+                color: highlighted ? "#0078d4" : "#333333"
+                radius: 4
             }
         }
 
-        indicator {
-            visible: false
+        indicator: Text {
+            // Position indicator properly within the ComboBox bounds
+            anchors.right: parent.right
+            anchors.rightMargin: 8
+            anchors.verticalCenter: parent.verticalCenter
+            text: "▼"
+            font.pixelSize: 12
+            color: "#1a1a1a"
         }
 
         contentItem: Text {
             id: displayedItem
-            text: (config.TranslateSession || (textConstantSession + ":")) + " " + selectSession.currentText
-            color: "black" //root.palette.text
+            // Use proper padding to keep text within bounds
+            leftPadding: 8
+            rightPadding: 30  // Leave space for indicator
+            text: (textConstantSession + ":") + " " + selectSession.currentText
+            color: "#888888"
             verticalAlignment: Text.AlignVCenter
-            anchors.left: parent.left
-            anchors.leftMargin: 3
-            font.pointSize: root.font.pointSize * 0.8
-            font.family: root.font.family
-            Keys.onReleased: parent.popup.open()
+            font.pixelSize: 14
+            // IMPORTANT: Clip and elide to prevent overflow
+            clip: true
+            elide: Text.ElideRight
         }
 
         background: Rectangle {
-            color: "grey"
-            border.width: 1 
-            border.color: "white"
-            height: parent.visualFocus ? 2 : 0
-            width: displayedItem.implicitWidth
-            anchors.top: parent.bottom
-            anchors.left: parent.left
-            anchors.leftMargin: 3
+            // Remove explicit width - let it fill the ComboBox
+            color: "#1a1a1a"
+            border.color: selectSession.activeFocus ? "#0078d4" : "#444444"
+            border.width: 1
+            radius: 4
+            // Ensure background fills the entire ComboBox
+            anchors.fill: parent
         }
 
         popup: Popup {
             id: popupHandler
-            y: parent.height - 1
-            x: config.ForceRightToLeft == "true" ? -loginButtonWidth + displayedItem.width : 0
-            width: sessionButton.width
-            implicitHeight: contentItem.implicitHeight
+            y: selectSession.height
+            x: 0
+            width: selectSession.width
+            implicitHeight: Math.min(contentItem.implicitHeight + 20, 200)
             padding: 10
 
             contentItem: ListView {
                 clip: true
-                implicitHeight: contentHeight + 20
+                implicitHeight: contentHeight
                 model: selectSession.popup.visible ? selectSession.delegateModel : null
                 currentIndex: selectSession.highlightedIndex
                 ScrollIndicator.vertical: ScrollIndicator { }
             }
 
             background: Rectangle {
-                radius: config.RoundCorners / 2
-                color: config.BackgroundColor
-                layer.enabled: true
+                radius: 4
+                color: "#333333"
+                border.color: "#555555"
+                border.width: 1
             }
 
             enter: Transition {
-                NumberAnimation { property: "opacity"; from: 0; to: 1 }
+                NumberAnimation { 
+                    property: "opacity"
+                    from: 0
+                    to: 1 
+                }
             }
         }
 
@@ -123,13 +125,11 @@ Item {
                 when: selectSession.down
                 PropertyChanges {
                     target: displayedItem
-                    // color: Qt.darker(root.palette.highlight, 1.1)
-                    color: "purple" //Qt.darker(root.palette.highlight, 1.1)
+                    color: "#cccccc"
                 }
                 PropertyChanges {
                     target: selectSession.background
-                    border.color: Qt.darker(root.palette.highlight, 1.1)
-                    color: "pink" //Qt.darker(root.palette.highlight, 1.1)
+                    color: "#1a1a1a"
                 }
             },
             State {
@@ -137,12 +137,11 @@ Item {
                 when: selectSession.hovered
                 PropertyChanges {
                     target: displayedItem
-                    // color: Qt.lighter(root.palette.highlight, 1.1)
-                    color: "blue"//  Qt.lighter(root.palette.highlight, 1.1)
+                    color: "#1a1a1a"
                 }
                 PropertyChanges {
                     target: selectSession.background
-                    border.color: Qt.lighter(root.palette.highlight, 1.1)
+                    color: "#333333"
                 }
             },
             State {
@@ -150,12 +149,12 @@ Item {
                 when: selectSession.visualFocus
                 PropertyChanges {
                     target: displayedItem
-                    // color: root.palette.highlight
-                    color: "yellow"//root.palette.highlight
+                    color: "#888888"
                 }
                 PropertyChanges {
                     target: selectSession.background
-                    border.color: root.palette.highlight
+                    border.color: "#0078d4"
+                    border.width: 2
                 }
             }
         ]
@@ -163,12 +162,10 @@ Item {
         transitions: [
             Transition {
                 PropertyAnimation {
-                    properties: "color, border.color"
+                    properties: "color, border.color, border.width"
                     duration: 150
                 }
             }
         ]
-
     }
-
 }
