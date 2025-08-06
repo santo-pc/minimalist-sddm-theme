@@ -91,7 +91,7 @@ Rectangle {
                 verticalAlignment: TextInput.AlignVCenter
                 echoMode: TextInput.Password
                 
-                KeyNavigation.tab: sessionSelect
+                KeyNavigation.tab: loginButton
                 KeyNavigation.backtab: usernameInput
                 Keys.onReturnPressed: sddm.login(username, password, sessionIndex)
                 Keys.onEnterPressed: sddm.login(username, password, sessionIndex)
@@ -129,6 +129,7 @@ Rectangle {
                 color: loginMouseArea.pressed ? "#0d7377" : 
                        (loginMouseArea.containsMouse ? "#14a085" : 
                        (loginMouseArea.activeFocus ? "#2d8f6f" : "#40916c"))
+
                 border.color: loginMouseArea.activeFocus ? "#ffffff" : "transparent"
                 border.width: loginMouseArea.activeFocus ? 2 : 0
                 radius: 6
@@ -162,63 +163,4 @@ Rectangle {
         }
     }
 
-    // Power options in bottom right
-    RowLayout {
-        anchors.bottom: parent.bottom
-        anchors.right: parent.right
-        anchors.margins: 20
-        spacing: 10
-
-        Rectangle {
-            width: 60
-            height: 30
-            color: rebootMouseArea.pressed ? "#444444" : 
-                   (rebootMouseArea.containsMouse ? "#555555" : "transparent")
-            radius: 4
-            border.color: "#666666"
-            border.width: 1
-            visible: sddm.canReboot
-            
-            Text {
-                anchors.centerIn: parent
-                text: "Reboot"
-                font.family: customFont.name
-                font.pixelSize: 12
-                color: "#cccccc"
-            }
-            
-            MouseArea {
-                id: rebootMouseArea
-                anchors.fill: parent
-                hoverEnabled: true
-                onClicked: sddm.reboot()
-            }
-        }
-
-        Rectangle {
-            width: 70
-            height: 30
-            color: shutdownMouseArea.pressed ? "#444444" : 
-                   (shutdownMouseArea.containsMouse ? "#555555" : "transparent")
-            radius: 4
-            border.color: "#666666"
-            border.width: 1
-            visible: sddm.canPowerOff
-            
-            Text {
-                anchors.centerIn: parent
-                text: "Shutdown"
-                font.family: customFont.name
-                font.pixelSize: 12
-                color: "#cccccc"
-            }
-            
-            MouseArea {
-                id: shutdownMouseArea
-                anchors.fill: parent
-                hoverEnabled: true
-                onClicked: sddm.powerOff()
-            }
-        }
-    }
 }
