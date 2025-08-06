@@ -7,22 +7,10 @@ Rectangle {
     width: 900
     height: 550
     color: "#1a1a1a"
-    
     property string username: ""
     property string password: ""
-    property int sessionIndex: 0  // Start at 0 instead of sessionModel.lastIndex
-    
-    // Test data for when sessionModel is empty (test mode)
-    property var testSessions: ["GNOME", "KDE Plasma", "XFCE", "i3", "Sway"]
-    property bool isTestMode: sessionModel.rowCount() === 0
-    
-    // Initialize sessionIndex properly
-    Component.onCompleted: {
-        if (!isTestMode && sessionModel.lastIndex >= 0) {
-            sessionIndex = sessionModel.lastIndex
-        }
-    }
-    
+    property int sessionIndex: 0
+
     // Load custom font
     FontLoader {
         id: customFont
@@ -42,7 +30,7 @@ Rectangle {
             border.color: usernameInput.activeFocus ? "#0078d4" : "#444444"
             border.width: usernameInput.activeFocus ? 2 : 1
             radius: 4
-            
+
             TextInput {
                 id: usernameInput
                 anchors.fill: parent
@@ -54,9 +42,8 @@ Rectangle {
                 font.family: customFont.name
                 font.pixelSize: 14
                 verticalAlignment: TextInput.AlignVCenter
-                
                 KeyNavigation.tab: passwordInput
-                
+
                 Text {
                     anchors.fill: parent
                     text: "Username"
@@ -77,7 +64,7 @@ Rectangle {
             border.color: passwordInput.activeFocus ? "#0078d4" : "#444444"
             border.width: passwordInput.activeFocus ? 2 : 1
             radius: 4
-            
+
             TextInput {
                 id: passwordInput
                 anchors.fill: parent
@@ -132,7 +119,7 @@ Rectangle {
                 border.color: loginMouseArea.activeFocus ? "#ffffff" : "transparent"
                 border.width: loginMouseArea.activeFocus ? 2 : 0
                 radius: 6
-                
+
                 Text {
                     anchors.centerIn: parent
                     text: "Login"
@@ -140,21 +127,21 @@ Rectangle {
                     font.family: customFont.name
                     font.pixelSize: 14
                 }
-                
+
                 MouseArea {
                     id: loginMouseArea
                     anchors.fill: parent
                     hoverEnabled: true
-                    
+
                     onClicked: {
                         focus = true
                         sddm.login(username, password, sessionIndex)
                     }
-                    
+
                     Keys.onReturnPressed: sddm.login(username, password, sessionIndex)
                     Keys.onEnterPressed: sddm.login(username, password, sessionIndex)
                     Keys.onSpacePressed: sddm.login(username, password, sessionIndex)
-                    
+
                     KeyNavigation.tab: usernameInput
                     KeyNavigation.backtab: sessionSelect
                 }
