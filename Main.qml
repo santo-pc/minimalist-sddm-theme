@@ -79,8 +79,8 @@ Rectangle {
                 
                 KeyNavigation.tab: loginButton
                 KeyNavigation.backtab: usernameInput
-                Keys.onReturnPressed: sddm.login(username, password, sessionIndex)
-                Keys.onEnterPressed: sddm.login(username, password, sessionIndex)
+                Keys.onReturnPressed: sddm.login(username, password,  sessionSelect.selectedSession)
+                Keys.onEnterPressed: sddm.login(username, password, sessionSelect.selectedSession)
                 
                 Text {
                     anchors.fill: parent
@@ -135,13 +135,12 @@ Rectangle {
 
                     onClicked: {
                         focus = true
-                        sddm.login(username, password, sessionIndex)
+                        sddm.login(username, password, sessionSelect.selectedSession)
                     }
 
-                    Keys.onReturnPressed: sddm.login(username, password, sessionIndex)
-                    Keys.onEnterPressed: sddm.login(username, password, sessionIndex)
-                    Keys.onSpacePressed: sddm.login(username, password, sessionIndex)
-
+                    Keys.onReturnPressed: sddm.login(username, password, sessionSelect.selectedSession)
+                    Keys.onEnterPressed: sddm.login(username, password, sessionSelect.selectedSession)
+                    Keys.onSpacePressed: sddm.login(username, password, sessionSelect.selectedSession)
                     KeyNavigation.tab: usernameInput
                     KeyNavigation.backtab: sessionSelect
                 }
